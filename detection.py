@@ -88,4 +88,4 @@ def skin_detection(img):
         mask[j, :] = skin_segmentation(r_row_, g_row_, H[j])
 
     skin = cv2.bitwise_and(img, img, mask=np.array(mask, dtype="uint8"))
-    return skin
+    return np.array(skin, dtype="uint8")
