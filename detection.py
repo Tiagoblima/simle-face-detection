@@ -62,11 +62,10 @@ def hair_detection(img):
 
     hair = cv2.bitwise_and(img, img, mask=np.array(mask, dtype="uint8"))
 
-
     return hair
 
 
-def skin_detection(img):
+def hsi_skin_detection(img):
     B, G, R = cv2.split(img)
 
     print(R.shape, G.shape, B.shape)
