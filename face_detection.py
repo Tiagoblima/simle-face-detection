@@ -48,7 +48,7 @@ def hsv_skin_detection(src_image):
 
 def quantization(image):
     # skinRegionHSV = cv2.inRange(imageHSV, min_HSV, max_HSV)
-    image = image.copy()
+
     (h, w) = image.shape[:2]
     # convert the image from the RGB color space to the L*a*b*
     # color space -- since we will be clustering using k-means
