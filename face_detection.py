@@ -15,8 +15,7 @@ def generate_component_mask(src_image):
     gray = cv2.cvtColor(src_image, cv2.COLOR_BGR2GRAY)
     thresh = cv2.threshold(gray, 12, 255,
                            cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-
-    output = cv2.connectedComponentsWithStats(thresh, 8, cv2.CV_32S)
+    output = cv2.connectedComponentsWithStats(src_image, 8, cv2.CV_32S)
     (numLabels, labels, stats, centroids) = output
 
     component_mask = (labels == 0).astype("uint8") * 255
@@ -34,19 +33,7 @@ def create_rectangle(src_image, mask, color=(255, 0, 0)):
     return cv2.rectangle(src_image.copy(), start_point, end_point, color, thickness)
 
 
-def hsv_skin_detection(src_image):
-    image_hsv = cv2.cvtColor(src_image, cv2.COLOR_BGR2HSV)
-    # create NumPy arrays from the boundaries
-    min_hsv = np.array([0, 58, 30], dtype="uint8")
-    max_hsv = np.array([33, 255, 255], dtype="uint8")
-
-    skin_region_hsv = cv2.inRange(image_hsv, min_hsv, max_hsv)
-    skin_hsv = cv2.bitwise_and(src_image, src_image, mask=skin_region_hsv)
-
-    return skin_hsv
-
-
-def quantization(image):
+def kmeans_quantization(image):
     # skinRegionHSV = cv2.inRange(imageHSV, min_HSV, max_HSV)
 
     (h, w) = image.shape[:2]
@@ -55,6 +42,7 @@ def quantization(image):
     # which is based on the euclidean distance, we'll use the
     # L*a*b* color space where the euclidean distance implies
     # perceptual meaning
+
     image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)
     # reshape the image into a feature vector so that k-means
     # can be applied
@@ -71,7 +59,7 @@ def quantization(image):
     quant = cv2.cvtColor(quant, cv2.COLOR_LAB2BGR)
     image = cv2.cvtColor(image, cv2.COLOR_LAB2BGR)
 
-    return image
+    return quant
 
 
 def demo():

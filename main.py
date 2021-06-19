@@ -22,7 +22,7 @@ parser.add_argument('--show_steps', action='store_true',
                     help='Shows the detection step by step.', required=False)
 
 args = parser.parse_args()
-img = cv2.imread(args.path_to_image, cv2.COLOR_BGR2RGB)
+img = cv2.imread(args.path_to_image)
 
 img = cv2.resize(img, (500, 400))
 
