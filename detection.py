@@ -49,7 +49,7 @@ def hair_segmentation(r_row, g_row, b_row, h_row, i_row):
 
 
 def hsi_hair_detection(img):
-    R, B, G = cv2.split(img)
+    (B, G, R) = cv2.split(img)
 
     print(R.shape, G.shape, B.shape)
 
@@ -83,14 +83,14 @@ def hsv_skin_detection(src_image):
 
 def hsi_skin_detection(img):
     img = img.copy()
-    R, G, B = cv2.split(img)
+    (B, G, R) = cv2.split(img)
 
     # print(R.shape, G.shape, B.shape)
 
     # STEP A. Skin Detection
     # Normalizing colors
 
-    r = np.nan_to_num(R / (G + R + B))
+    r = np.nan_to_num(R / (R + G  + B))
     g = np.nan_to_num(G / (R + G + B))
 
     # imshow_components(labels)
@@ -237,7 +237,19 @@ def compare_detection(src_image):
 
 src_ = cv2.imread('samples/paper.png')
 src_ = cv2.resize(src_, (400, 500))
-hsv = hsv_face_detection(src_)
-hsi = hsi_face_detection(src_)
 
-cv2.imwrite('face_detection_hsv-hsi.png', np.hstack([hsv, hsi]))
+hsi_skin_pipe = [(hsi_skin_detection, 'hsi_skin_detection'),
+                 (hsi_quantization, 'hsi_quantization'),
+                 (component_labeling, 'component_labeling')]
+
+hsi_hair_pipe = [(hsi_hair_detection, 'hsi_hair_detection'),
+                 (hsi_quantization, 'hsi_quantization'),
+                 (component_labeling, 'component_labeling')]
+
+hsv_skin_pipe = [(hsv_skin_detection, 'hsv_skin_detection'),
+                 (hsi_quantization, 'hsi_quantization'),
+                 (component_labeling, 'component_labeling')]
+
+hsi = hsi_skin_detection(src_)
+hsv = hsv_skin_detection(src_)
+cv2.imwrite('case1/skin_detection_hsv-hsi.png', np.hstack([hsv, hsi]) )
