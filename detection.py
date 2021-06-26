@@ -69,6 +69,7 @@ def hsi_hair_detection(img):
 
 
 def hsv_skin_detection(src_image):
+    src_image = src_image.copy()
     image_hsv = cv2.cvtColor(src_image, cv2.COLOR_BGR2HSV)
     # create NumPy arrays from the boundaries
     min_hsv = np.array([0, 58, 30], dtype="uint8")
@@ -81,9 +82,10 @@ def hsv_skin_detection(src_image):
 
 
 def hsi_skin_detection(img):
+    img = img.copy()
     R, G, B = cv2.split(img)
 
-    print(R.shape, G.shape, B.shape)
+    # print(R.shape, G.shape, B.shape)
 
     # STEP A. Skin Detection
     # Normalizing colors
@@ -107,7 +109,9 @@ def hsi_skin_detection(img):
 
 def hsi_quantization(src_image, windows_shape=(5, 5)):
     quant_img = src_image.copy()
-    row, col = np.indices(img.shape[:2])
+    quant_img = kmeans_quantization(quant_img)
+
+    row, col = np.indices(src_image.shape[:2])
     slide_row = np.lib.stride_tricks.sliding_window_view(row, windows_shape)
     slide_col = np.lib.stride_tricks.sliding_window_view(col, windows_shape)
 
@@ -121,8 +125,8 @@ def hsi_quantization(src_image, windows_shape=(5, 5)):
 
 
 def component_labeling(src_image):
-    gray = cv2.cvtColor(src_image, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.threshold(gray, 12, 255,
+    gray = cv2.cvtColor(src_image.copy(), cv2.COLOR_BGR2GRAY)
+    thresh = cv2.threshold(gray, 0, 255,
                            cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
     output = cv2.connectedComponentsWithStats(thresh, cv2.CV_32S, connectivity=8)
     (numLabels, labels, stats, centroids) = output
@@ -131,15 +135,6 @@ def component_labeling(src_image):
     # show our output image and connected component mask
 
     return component_mask
-
-
-path_to_image = 'samples/TD_RGB_E_22.jpg'
-img = cv2.imread(path_to_image, cv2.COLOR_BGR2RGB)
-
-img = cv2.resize(img, (400, 500))
-
-hair_pipe = [hsi_hair_detection, hsi_quantization, component_labeling]
-skin_pipe = [hsi_skin_detection, hsi_quantization, component_labeling]
 
 
 def find_corners(src_image):
@@ -155,7 +150,6 @@ def find_corners(src_image):
     else:
         min_y, max_y = min(X), max(Y)
 
-
     top_left = (min_x, min_y)
     bottom_right = (max_y, max_x)
     top_right = (max_x, min_y)
@@ -163,30 +157,87 @@ def find_corners(src_image):
     return top_left, bottom_right, top_right, bottom_left
 
 
-def hsi_face_detection(src_image):
-    hair = src_image.copy()
+def hsi_hair_preprocess(src_image):
+    hair_pipe = [hsi_hair_detection, hsi_quantization, component_labeling]
+    hair_ = src_image.copy()
     for fun in hair_pipe:
-        hair = fun(hair)
+        hair_ = fun(hair_)
+    return hair_
+
+
+def hsi_skin_preprocess(src_image):
+    skin_pipe = [hsi_skin_detection, hsi_quantization, component_labeling]
 
     skin = src_image.copy()
     for fun in skin_pipe:
         skin = fun(skin)
 
-    top_left, bottom_right, top_right, bottom_left = find_corners(skin)
+    return skin
+
+
+def hsv_preprocess(src_image):
+    skin_pipe = [hsv_skin_detection, hsi_quantization, component_labeling]
+
+    skin = src_image.copy()
+    for fun in skin_pipe:
+        skin = fun(skin)
+
+    return skin
+
+
+def draw_square(src_image, mask_image, color=(255, 0, 0), label="square", org=(50, 50)):
+    # font
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    # fontScale
+    fontScale = 1
+
+    # Line thickness of 2 px
+    thickness = 1
+
+    top_left, bottom_right, top_right, bottom_left = find_corners(mask_image)
     print(top_left, bottom_right, top_right, bottom_left)
-    skin_square = cv2.rectangle(src_image.copy(), top_left, bottom_right, (255, 0, 0), 2)
+    skin_square = cv2.rectangle(src_image.copy(), top_left, bottom_right, color, 2)
 
-    top_left, bottom_right, top_right, bottom_left = find_corners(hair)
-    print(top_left, bottom_right, top_right, bottom_left)
+    if top_left != (0, 0):
+        image = cv2.putText(skin_square, label, org, font,
+                            fontScale, color, thickness, cv2.LINE_AA)
+    else:
+        image = skin_square
 
-    hair_square = cv2.rectangle(skin_square, top_left, bottom_right, (0, 255, 0), 2)
-
-    return hair_square
+    return image
 
 
-print(img.shape[:2])
+def hsi_face_detection(src_image):
+    skin = hsi_skin_preprocess(src_image.copy())
+    hair = hsi_hair_preprocess(src_image.copy())
 
-quant_img = hsi_face_detection(img)
+    # print(top_left, bottom_right, top_right, bottom_left)
+    image = draw_square(src_image, skin, label="hsi skin square")
+    image = draw_square(image, hair, label="hsi hair square", color=(0, 255, 0), org=(20, 20))
+    return image
 
-cv2.imshow("images", np.hstack([cv2.resize(quant_img, (400, 500))]))
-cv2.waitKey(0)
+
+def hsv_face_detection(src_image):
+    skin = hsv_preprocess(src_image.copy())
+
+    # print(top_left, bottom_right, top_right, bottom_left)
+    image = draw_square(src_image, skin, label="hsv skin square")
+
+    return image
+
+
+def compare_detection(src_image):
+    skin_hsi = hsi_skin_preprocess(src_image)
+    skin_hsv = hsv_preprocess(src_image)
+
+    hsi_square = draw_square(src_image, skin_hsi, color=(255, 0, 0), label="hsi skin preprocess", org=(50, 50))
+    hsv_square = draw_square(hsi_square, skin_hsv, color=(0, 255, 0), label="hsv skin preprocess", org=(20, 20))
+    return hsv_square
+
+
+src_ = cv2.imread('samples/paper.png')
+src_ = cv2.resize(src_, (400, 500))
+hsv = hsv_face_detection(src_)
+hsi = hsi_face_detection(src_)
+
+cv2.imwrite('face_detection_hsv-hsi.png', np.hstack([hsv, hsi]))
