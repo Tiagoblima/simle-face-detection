@@ -16,6 +16,6 @@ The implementation of a face segmentation algorithm
 
 *--mode*: The mode that the api must use. It must be hsi or hsv image skin detection.
 
-*--show_steps*: Shows the detection step by step.
+The following commands detect the face using hsv mode
 
-    python main.py --path_to_image samples/TD_RGB_E_10.jpg --mode hsv --show_steps
+    python main.py --path_to_image samples/TD_RGB_E_10.jpg --mode hsv 
