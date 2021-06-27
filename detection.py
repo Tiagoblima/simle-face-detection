@@ -248,13 +248,13 @@ hsi_hair_pipe = [(hsi_hair_detection, 'hsi_hair_detection'),
 hsv_skin_pipe = [(hsv_skin_detection, 'hsv_skin_detection'),
                  (quantization, 'hsi_quantization'),
                  (component_labeling, 'component_labeling')]
+hsi = hsi_skin_detection(src_)
+hsv = hsv_skin_detection(src_)
+#
+hsi = quantization(hsi)
+hsv = quantization(hsv)
 
-# hsi = hsi_hair_detection(src_)
-# # hsv = hsv_skin_detection(src_)
-#
-# # hsi = quantization(hsi)
-# # hsv = hsi_quantization(hsv)
-#
-# # hsi = component_labeling(hsi)
-# # hsv = component_labeling(hsv)
-# cv2.imwrite('case2/hair/hair_detection_hsv-hsi.png', np.hstack([hsi]))
+
+hsi = component_labeling(hsi)
+hsv = component_labeling(hsv)
+cv2.imwrite('case2/skin_quant3_hsv-hsi.png', np.hstack([hsv, hsi]))

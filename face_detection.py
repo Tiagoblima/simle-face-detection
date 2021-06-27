@@ -9,28 +9,6 @@ warnings.filterwarnings("ignore")
 ROOT_DIR = 'dataset/'
 
 
-# Load an color image in grayscale
-
-def generate_component_mask(src_image):
-    gray = cv2.cvtColor(src_image, cv2.COLOR_BGR2GRAY)
-    thresh = cv2.threshold(gray, 12, 255,
-                           cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
-    output = cv2.connectedComponentsWithStats(src_image, 8, cv2.CV_32S)
-    (numLabels, labels, stats, centroids) = output
-
-    component_mask = (labels == 0).astype("uint8") * 255
-    # show our output image and connected component mask
-
-    return component_mask
-
-
-def create_rectangle(src_image, mask, color=(255, 0, 0)):
-    comp1, comp2 = np.where(mask == 255)
-    start_point = (min(comp2), min(comp1))
-    end_point = (max(comp2), max(comp1))
-    thickness = 2
-
-    return cv2.rectangle(src_image.copy(), start_point, end_point, color, thickness)
 
 
 def kmeans_quantization(image):
@@ -60,26 +38,3 @@ def kmeans_quantization(image):
     image = cv2.cvtColor(image, cv2.COLOR_LAB2BGR)
 
     return quant
-
-
-def demo():
-    image = cv2.imread(os.path.join(ROOT_DIR, 'TD_RGB_E_4.jpg'))
-    image = cv2.resize(image, (500, 300))
-
-    cv2.imshow("image", image)
-    cv2.waitKey(0)
-
-    # ------------------ HSV skin detection --------------------------
-
-    hsv_detected_image = hsv_skin_detection(image)
-    cv2.imshow(f"FACE HSV", hsv_detected_image)
-    cv2.waitKey(0)
-
-    # ------------------ HSI skin detection --------------------------
-    image_hsi = hsi_face_detection(image)
-    cv2.imshow(f"skinHSI", image_hsi)
-    cv2.waitKey(0)
-
-    cv2.imwrite('skin.png', image_hsi)
-
-    cv2.waitKey(0)
