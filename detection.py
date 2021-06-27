@@ -106,7 +106,7 @@ def hsi_skin_detection(img):
     return np.array(skin, dtype="uint8")
 
 
-def hsi_quantization(src_image, windows_shape=(5, 5)):
+def quantization(src_image, windows_shape=(5, 5)):
     quant_img = src_image.copy()
     quant_img = kmeans_quantization(quant_img)
 
@@ -157,7 +157,7 @@ def find_corners(src_image):
 
 
 def hsi_hair_preprocess(src_image):
-    hair_pipe = [hsi_hair_detection, hsi_quantization, component_labeling]
+    hair_pipe = [hsi_hair_detection, quantization, component_labeling]
     hair_ = src_image.copy()
     for fun in hair_pipe:
         hair_ = fun(hair_)
@@ -165,7 +165,7 @@ def hsi_hair_preprocess(src_image):
 
 
 def hsi_skin_preprocess(src_image):
-    skin_pipe = [hsi_skin_detection, hsi_quantization, component_labeling]
+    skin_pipe = [hsi_skin_detection, quantization, component_labeling]
 
     skin = src_image.copy()
     for fun in skin_pipe:
@@ -175,7 +175,7 @@ def hsi_skin_preprocess(src_image):
 
 
 def hsv_preprocess(src_image):
-    skin_pipe = [hsv_skin_detection, hsi_quantization, component_labeling]
+    skin_pipe = [hsv_skin_detection, quantization, component_labeling]
 
     skin = src_image.copy()
     for fun in skin_pipe:
@@ -234,27 +234,27 @@ def compare_detection(src_image):
     return hsv_square
 
 
-src_ = cv2.imread('samples/paper.png')
+src_ = cv2.imread('samples/TD_RGB_E_10.jpg')
 src_ = cv2.resize(src_, (400, 500))
 
 hsi_skin_pipe = [(hsi_skin_detection, 'hsi_skin_detection'),
-                 (hsi_quantization, 'hsi_quantization'),
+                 (quantization, 'hsi_quantization'),
                  (component_labeling, 'component_labeling')]
 
 hsi_hair_pipe = [(hsi_hair_detection, 'hsi_hair_detection'),
-                 (hsi_quantization, 'hsi_quantization'),
+                 (quantization, 'hsi_quantization'),
                  (component_labeling, 'component_labeling')]
 
 hsv_skin_pipe = [(hsv_skin_detection, 'hsv_skin_detection'),
-                 (hsi_quantization, 'hsi_quantization'),
+                 (quantization, 'hsi_quantization'),
                  (component_labeling, 'component_labeling')]
 
 hsi = hsi_hair_detection(src_)
 # hsv = hsv_skin_detection(src_)
 
-hsi = hsi_quantization(hsi)
+# hsi = quantization(hsi)
 # hsv = hsi_quantization(hsv)
 
-hsi = component_labeling(hsi)
+# hsi = component_labeling(hsi)
 # hsv = component_labeling(hsv)
-cv2.imwrite('case1/hair/hair_clabel_hsv-hsi.png', np.hstack([hsi]))
+cv2.imwrite('case2/hair/hair_detection_hsv-hsi.png', np.hstack([hsi]))
