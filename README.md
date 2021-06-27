@@ -14,7 +14,8 @@ The implementation of a face segmentation algorithm
 
 *--path_to_image*: The path to the image you want the face detected
 
-*--mode*: The mode that the api must use. It must be hsi or hsv image skin detection.
+*--mode*: The mode that the api must use. It must be hsi or hsv image skin detection. If it is different 
+the system will combine both of them.
 
 The following commands detect the face using hsv mode
 
